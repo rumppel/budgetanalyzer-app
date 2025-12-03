@@ -1,0 +1,110 @@
+import React, { useEffect, useState } from "react";
+import {
+  LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer
+} from "recharts";
+
+export default function ForecastPanel({ budgetCode, type }) {
+  const [data, setData] = useState(null);
+  const [selected, setSelected] = useState("arithmeticGrowth");
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadForecast = (force = false) => {
+    if (!budgetCode) return;
+
+    setLoading(true);
+    fetch(
+        `${process.env.REACT_APP_API_URL}/forecast/${budgetCode}/${type}?alpha=0.3&window=3${force ? "&force=1" : ""}`
+    )
+        .then(r => r.json())
+        .then(json => setData(json))
+        .finally(() => setLoading(false));
+    };
+
+  useEffect(() => {
+    loadForecast(false);
+    }, [budgetCode, type]);
+
+
+  if (loading) return <p>Завантаження прогнозу…</p>;
+  if (!data) return <p>Немає даних для прогнозу.</p>;
+
+    if (!data.methods) {
+        return <p>Немає методів прогнозу.</p>;
+    }
+
+    const methodsRoot = data.methods;
+    if (!methodsRoot) {
+        return <p>Немає даних методів.</p>;
+    }
+
+    const methodData = methodsRoot[selected];
+    if (!methodData) {
+        return <p>Метод не має достатньо даних.</p>;
+    }
+
+    const series = data.series || data.methods.series || [];
+
+
+  // Формуємо графік
+  const chartData = [
+    ...series.map(item => ({ year: item.year, value: item.value })),
+    { year: methodData.forecastYear, value: methodData.forecastValue }
+  ];
+
+  return (
+    <div className="forecast-panel">
+
+      {/* Перемикач методів */}
+      <div className="panel-row forecast-row">
+  
+        <div className="forecast-method-group">
+            <label className="field-label forecast-label">Метод прогнозування:</label>
+
+            <select
+            className="select"
+            value={selected}
+            onChange={(e) => setSelected(e.target.value)}
+            >
+            <option value="arithmeticGrowth">Середній приріст</option>
+            <option value="movingAverage">Ковзне середнє</option>
+            <option value="exponential">Експоненційне згладжування</option>
+            <option value="regression">Лінійна регресія</option>
+            </select>
+        </div>
+
+        {/* 🔄 кнопка оновлення */}
+        <button
+            className="refresh-btn"
+            onClick={() => {
+            setRefreshing(true);
+            loadForecast(true);
+            setTimeout(() => setRefreshing(false), 700);
+            }}
+        >
+            {refreshing ? "Оновлення…" : "🔄 Оновити прогноз"}
+        </button>
+
+        </div>
+
+
+      {/* Графік */}
+      <div className="chart-box" style={{ width: "100%", height: 260 }}>
+        <ResponsiveContainer>
+          <LineChart data={chartData}>
+            <CartesianGrid stroke="#ddd" />
+            <XAxis dataKey="year" />
+            <YAxis width={90} />
+            <Tooltip />
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke="#7c3aed"
+              strokeWidth={3}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
