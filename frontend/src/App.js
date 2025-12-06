@@ -28,7 +28,7 @@ function AppHeader() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
             <div>
-              <h1>OpenBudget Viewer</h1>
+              <h1>Budget Expenses Analyzer & Reporter</h1>
               <p className="app-subtitle">
                 Візуалізація видатків місцевих бюджетів на основі OpenBudget API
               </p>
