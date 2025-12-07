@@ -1,4 +1,4 @@
-# OpenBudget Local Budgets Viewer (Docker)
+# Budget Expenses Analyzer & Reporter
 
 This project provides:
 - PostgreSQL with auto schema init
