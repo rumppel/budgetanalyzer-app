@@ -45,11 +45,20 @@ export default function ForecastPanel({ budgetCode, type }) {
 
     const series = data.series || data.methods.series || [];
 
+  // Функція форматування чисел (як в ReportsService.js)
+  const formatNumber = (num) => {
+    if (num === null || num === undefined || isNaN(num)) return '0.00';
+    const formatted = new Intl.NumberFormat('uk-UA', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(num);
+    return formatted.replace(/\s/g, ' ');
+  };
 
   // Формуємо графік
   const chartData = [
-    ...series.map(item => ({ year: item.year, value: item.value })),
-    { year: methodData.forecastYear, value: methodData.forecastValue }
+    ...series.map(item => ({ year: item.year, value: item.value, isForecast: false })),
+    { year: methodData.forecastYear, value: methodData.forecastValue, isForecast: true }
   ];
 
   return (
@@ -93,7 +102,28 @@ export default function ForecastPanel({ budgetCode, type }) {
         <ResponsiveContainer>
           <LineChart data={chartData}>
             <CartesianGrid stroke="#ddd" />
-            <XAxis dataKey="year" />
+            <XAxis 
+              dataKey="year" 
+              tick={(props) => {
+                const { x, y, payload } = props;
+                const isForecast = payload.value === methodData.forecastYear;
+                return (
+                  <g transform={`translate(${x},${y})`}>
+                    <text
+                      x={0}
+                      y={0}
+                      dy={16}
+                      textAnchor="middle"
+                      fill={isForecast ? "#7c3aed" : "#666"}
+                      fontSize={isForecast ? 14 : 12}
+                      fontWeight={isForecast ? "bold" : "normal"}
+                    >
+                      {payload.value}
+                    </text>
+                  </g>
+                );
+              }}
+            />
             <YAxis width={90} />
             <Tooltip />
             <Line
@@ -104,6 +134,16 @@ export default function ForecastPanel({ budgetCode, type }) {
             />
           </LineChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Відображення прогнозу */}
+      <div style={{ marginTop: "20px", padding: "15px", backgroundColor: "#faf5ff", borderRadius: "8px", border: "1px solid #e5e7eb" }}>
+        <div style={{ fontSize: "14px", color: "#6d28d9", marginBottom: "8px", fontWeight: "600" }}>
+          Прогноз на {methodData.forecastYear}:
+        </div>
+        <div style={{ fontSize: "18px", color: "#7c3aed", fontWeight: "bold" }}>
+          {formatNumber(methodData.forecastValue)} грн
+        </div>
       </div>
     </div>
   );
