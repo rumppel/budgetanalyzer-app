@@ -27,7 +27,3 @@ docker-compose up --build
 ```
 curl -X POST http://localhost:5000/api/sync/openbudget -H "Content-Type: application/json" -d '{"year": 2025}'
 ```
-
-## Configure real endpoints
-Update **backend/src/sync/endpoints.json** with routes from the official Swagger:
-`https://api.openbudget.gov.ua/swagger-ui.html` (or your Confluence page).
